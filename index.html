@@ -1,0 +1,407 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ХАМСТЕР БИЗНЕС</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            color: #ffffff;
+            background-image: url('https://images.crazygames.com/hamster-kombat-clicker_16x9/20240621090008/hamster-kombat-clicker_16x9-cover?auto=format,compress&q=75&cs=strip');
+            background-size: cover;
+            background-position: center;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        #title {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ffcc00;
+            text-shadow: 2px 2px 4px #000000;
+        }
+
+        #counter, #coins, #megaCoins {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ffcc00;
+            text-shadow: 1px 1px 2px #000000;
+        }
+
+        button, input {
+            font-size: 24px;
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            margin: 10px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button {
+            color: #ffffff;
+            text-shadow: 1px 1px 2px #000000;
+        }
+
+        button:hover {
+            background-color: #ff9900;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        #upgradeButton {
+            background-color: #ffcc00;
+            display: none;
+        }
+
+        #megaButton {
+            background-color: #ff6600;
+            display: none;
+        }
+
+        input[type="text"] {
+            font-size: 24px;
+            padding: 10px;
+            border: 2px solid #ffffff;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #ffffff;
+            text-shadow: 1px 1px 2px #000000;
+        }
+
+        #resetButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #ff0000;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px #000000;
+        }
+
+        #resetButton:hover {
+            background-color: #cc0000;
+        }
+
+        #inventoryButton, #shopButton {
+            background-color: #00cc99;
+        }
+
+        #inventoryButton:hover, #shopButton:hover {
+            background-color: #009966;
+        }
+
+        #inventoryButton:active, #shopButton:active {
+            transform: scale(0.95);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .shop-item {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .shop-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .shop-item.sold {
+            color: #ff0000;
+        }
+
+        .inventory-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .inventory-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="title">ХАМСТЕР БИЗНЕС</div>
+        <div id="counter">0</div>
+        <div id="coins">Щавели: 0</div>
+        <div id="megaCoins">МЕГА ЩАВЕЛИДЗЕ: 0</div>
+        <button onclick="incrementCounter()">Хамстер клик</button>
+        <button id="upgradeButton" onclick="buyUpgrade()" disabled>Купить улучшение (10 щавелей)</button>
+        <button id="megaButton" onclick="buyMegaUpgrade()" disabled>Купить МЕГА ЩАВЕЛИДЗЕ (200 щавелей)</button>
+        <input type="text" id="passwordInput" placeholder="Введите пароль" />
+        <button onclick="checkPassword()">Введите пароль</button>
+        <button id="inventoryButton" onclick="showInventory()">Инвентарь</button>
+        <button id="shopButton" onclick="showShop()">Хамстер магазин</button>
+    </div>
+    <button id="resetButton" onclick="resetProgress()">Сбросить прогресс</button>
+
+    <!-- Inventory Modal -->
+    <div id="inventoryModal" class="modal">
+        <div class="modal-content">
+            <h2>Инвентарь</h2>
+            <p>Щавели: <span id="inventoryCoins">0</span></p>
+            <p>МЕГА ЩАВЕЛИДЗЕ: <span id="inventoryMegaCoins">0</span></p>
+            <div id="inventoryItems"></div>
+            <button onclick="hideInventory()">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- Shop Modal -->
+    <div id="shopModal" class="modal">
+        <div class="modal-content">
+            <h2>Хамстер магазин</h2>
+            <div id="shopItems">
+                <!-- Shop items will be dynamically added here -->
+            </div>
+            <button onclick="hideShop()">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize variables
+        let count = parseInt(localStorage.getItem('count')) || 0;
+        let coins = parseInt(localStorage.getItem('coins')) || 0;
+        let megaCoins = parseInt(localStorage.getItem('megaCoins')) || 0;
+        let clickValue = parseInt(localStorage.getItem('clickValue')) || 1;
+        let clicksSinceLastCoin = parseInt(localStorage.getItem('clicksSinceLastCoin')) || 0;
+        let inventory = JSON.parse(localStorage.getItem('inventory')) || [];
+
+        // Update UI
+        updateUI();
+        updateShop();
+        updateInventory();
+
+        function incrementCounter() {
+            count += clickValue;
+            clicksSinceLastCoin++;
+
+            if (clicksSinceLastCoin >= 50) {
+                coins++;
+                clicksSinceLastCoin = 0;
+            }
+
+            // Update local storage and UI
+            localStorage.setItem('count', count);
+            localStorage.setItem('coins', coins);
+            localStorage.setItem('clicksSinceLastCoin', clicksSinceLastCoin);
+
+            updateUI();
+        }
+
+        function buyUpgrade() {
+            if (coins >= 10) {
+                coins -= 10;
+                clickValue += 5;
+
+                // Update local storage
+                localStorage.setItem('coins', coins);
+                localStorage.setItem('clickValue', clickValue);
+
+                updateUI();
+            }
+        }
+
+        function buyMegaUpgrade() {
+            if (coins >= 200) {
+                coins -= 200;
+                megaCoins++;
+
+                // Update local storage
+                localStorage.setItem('coins', coins);
+                localStorage.setItem('megaCoins', megaCoins);
+
+                updateUI();
+            } else {
+                alert('Недостаточно щавелей для покупки МЕГА ЩАВЕЛИДЗЕ.');
+            }
+        }
+
+        function checkPassword() {
+            const passwordInput = document.getElementById('passwordInput');
+            const password = passwordInput.value.trim();
+
+            if (password === '09876543210987654321') {
+                coins += 1000000000000000;
+
+                // Update local storage
+                localStorage.setItem('coins', coins);
+
+                updateUI();
+            }
+
+            passwordInput.value = '';
+        }
+
+        function resetProgress() {
+            if (confirm('Вы уверены, что хотите сбросить прогресс?')) {
+                count = 0;
+                coins = 0;
+                megaCoins = 0;
+                clickValue = 1;
+                clicksSinceLastCoin = 0;
+                inventory = [];
+
+                // Clear local storage
+                localStorage.clear();
+
+                updateUI();
+                updateInventory();
+                updateShop();
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('counter').innerText = count;
+            document.getElementById('coins').innerText = 'Щавели: ' + coins;
+            document.getElementById('megaCoins').innerText = 'МЕГА ЩАВЕЛИДЗЕ: ' + megaCoins;
+
+            // Update button visibility and state
+            document.getElementById('upgradeButton').style.display = coins >= 10 ? 'inline-block' : 'none';
+            document.getElementById('megaButton').style.display = coins >= 200 ? 'inline-block' : 'none';
+
+            const upgradeButton = document.getElementById('upgradeButton');
+            upgradeButton.disabled = coins < 10;
+
+            const megaButton = document.getElementById('megaButton');
+            megaButton.disabled = coins < 200;
+
+            // Update inventory modal
+            updateInventory();
+        }
+
+        function showInventory() {
+            document.getElementById('inventoryModal').style.display = 'flex';
+        }
+
+        function hideInventory() {
+            document.getElementById('inventoryModal').style.display = 'none';
+        }
+
+        function showShop() {
+            updateShop();
+            document.getElementById('shopModal').style.display = 'flex';
+        }
+
+        function hideShop() {
+            document.getElementById('shopModal').style.display = 'none';
+        }
+
+        function updateShop() {
+            const shopItemsContainer = document.getElementById('shopItems');
+            shopItemsContainer.innerHTML = '';
+
+            const items = [
+                { id: 'item1', name: 'хамстеренок', price: 200, image: 'https://serezhka.github.io/assets/img/posts/2024-04-26/hamster.png' },
+                { id: 'item2', name: 'хамстище', price: 400, image: 'https://i.pinimg.com/736x/c6/5c/22/c65c2240822e9ea21212d9c25a77a78f.jpg' } // Updated image URL
+            ];
+
+            items.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'shop-item';
+                itemElement.id = item.id;
+                const isSold = inventory.includes(item.id);
+                itemElement.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}">
+                    <span>${item.name} - ${item.price} МЕГА ЩАВЕЛИДЗЕ</span>
+                    <button onclick="buyItem('${item.id}', ${item.price})" ${isSold ? 'disabled class="sold"' : (megaCoins >= item.price ? '' : 'disabled')}>${isSold ? 'Продано' : (megaCoins >= item.price ? 'Купить' : 'Недостаточно МЕГА ЩАВЕЛИДЗЕ')}</button>
+                `;
+                shopItemsContainer.appendChild(itemElement);
+            });
+        }
+
+        function updateInventory() {
+            const inventoryItemsContainer = document.getElementById('inventoryItems');
+            inventoryItemsContainer.innerHTML = inventory.length ? '' : 'Пусто';
+
+            inventory.forEach(item => {
+                if (item === 'item1') {
+                    const inventoryItemElement = document.createElement('div');
+                    inventoryItemElement.className = 'inventory-item';
+                    inventoryItemElement.innerHTML = `
+                        <img src="https://serezhka.github.io/assets/img/posts/2024-04-26/hamster.png" alt="хамстеренок">
+                        <span>хамстеренок</span>
+                    `;
+                    inventoryItemsContainer.appendChild(inventoryItemElement);
+                }
+                if (item === 'item2') { // Display new item in inventory
+                    const inventoryItemElement = document.createElement('div');
+                    inventoryItemElement.className = 'inventory-item';
+                    inventoryItemElement.innerHTML = `
+                        <img src="https://i.pinimg.com/736x/c6/5c/22/c65c2240822e9ea21212d9c25a77a78f.jpg" alt="хамстище">
+                        <span>хамстище</span>
+                    `;
+                    inventoryItemsContainer.appendChild(inventoryItemElement);
+                }
+            });
+
+            document.getElementById('inventoryCoins').innerText = coins;
+            document.getElementById('inventoryMegaCoins').innerText = megaCoins;
+        }
+
+        function buyItem(itemId, itemPrice) {
+            if (megaCoins >= itemPrice && !inventory.includes(itemId)) {
+                megaCoins -= itemPrice;
+                inventory.push(itemId);
+
+                // Update local storage
+                localStorage.setItem('megaCoins', megaCoins);
+                localStorage.setItem('inventory', JSON.stringify(inventory));
+
+                updateUI();
+                updateShop();
+            } else {
+                alert('Недостаточно МЕГА ЩАВЕЛИДЗЕ для покупки или товар уже куплен.');
+            }
+        }
+    </script>
+</body>
+</html>
